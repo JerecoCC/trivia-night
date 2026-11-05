@@ -31,7 +31,10 @@ const setup = (pathname = '/dashboard', user = adminUser) => {
 beforeEach(() => jest.clearAllMocks());
 
 describe('PageHeader – title resolution', () => {
-  it.each([['/dashboard', 'Dashboard']])('shows "%s" title for %s', (pathname, title) => {
+  it.each([
+    ['/dashboard', 'Dashboard'],
+    ['/events', 'Events'],
+  ])('shows "%s" title for %s', (pathname, title) => {
     setup(pathname);
     expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
   });
