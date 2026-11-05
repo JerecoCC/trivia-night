@@ -42,7 +42,10 @@ const STORED = {
   owner_id: 'user-1',
   ...BODY,
   is_online: false,
+  quiz_id: null,
 };
+
+const QUIZ_ID = '44444444-4444-4444-8444-444444444444';
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -93,7 +96,33 @@ describe('POST /api/events', () => {
       '19:30',
       false,
       'The Crown',
+      null,
     ]);
+  });
+
+  it("links one of the planner's own quizzes", async () => {
+    sql.mockResolvedValueOnce([{ '?column?': 1 }]).mockResolvedValueOnce([{ id: EVENT_ID }]);
+
+    const res = await request(app)
+      .post('/api/events')
+      .send({ ...BODY, quiz_id: QUIZ_ID });
+
+    expect(res.status).toBe(201);
+    expect(sql.mock.calls[0][0].join('?')).toContain('FROM quizzes');
+    expect(sql.mock.calls[0].slice(1)).toEqual([QUIZ_ID, 'user-1']);
+    expect(sql.mock.calls[1].slice(-1)).toEqual([QUIZ_ID]);
+  });
+
+  it("rejects someone else's quiz without saving", async () => {
+    sql.mockResolvedValueOnce([]);
+
+    const res = await request(app)
+      .post('/api/events')
+      .send({ ...BODY, quiz_id: QUIZ_ID });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Choose one of your own quizzes');
+    expect(sql).toHaveBeenCalledTimes(1);
   });
 
   it('creates an online event without a location', async () => {
@@ -104,7 +133,7 @@ describe('POST /api/events', () => {
       .send({ ...BODY, is_online: true, location: undefined });
 
     expect(res.status).toBe(201);
-    expect(sql.mock.calls[0].slice(-2)).toEqual([true, null]);
+    expect(sql.mock.calls[0].slice(-3)).toEqual([true, null, null]);
   });
 
   it('rejects an invalid body without saving', async () => {
@@ -136,9 +165,24 @@ describe('PATCH /api/events/:id', () => {
       '19:30',
       false,
       'The Anchor',
+      null,
       EVENT_ID,
       'user-1',
     ]);
+  });
+
+  it('keeps the linked quiz without re-checking it, and can unlink it', async () => {
+    findOwnedEvent.mockResolvedValue({ ...STORED, quiz_id: QUIZ_ID });
+    sql.mockResolvedValue([]);
+
+    await request(app).patch(`/api/events/${EVENT_ID}`).send({ name: 'Renamed' });
+    expect(sql).toHaveBeenCalledTimes(1);
+    expect(sql.mock.calls[0].slice(6, 7)).toEqual([QUIZ_ID]);
+
+    sql.mockClear();
+    await request(app).patch(`/api/events/${EVENT_ID}`).send({ quiz_id: null });
+    expect(sql).toHaveBeenCalledTimes(1);
+    expect(sql.mock.calls[0].slice(6, 7)).toEqual([null]);
   });
 
   it('clears the location when an event moves online', async () => {

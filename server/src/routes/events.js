@@ -8,6 +8,7 @@ const { requireAuth } = require('../middleware/auth');
 const { HttpError, asyncRoute } = require('../middleware/errors');
 const { sql } = require('../db');
 const { fetchEvents, findOwnedEvent, isUuid, normalizeEventInput } = require('../lib/events');
+const { assertOwnQuiz } = require('../lib/quizzes');
 
 router.use(requireAuth);
 
@@ -35,19 +36,21 @@ router.get(
 
 // ---------------------------------------------------------------------------
 // POST /api/events  – plan a new event
-// Body: { name, scheduled_date: 'YYYY-MM-DD', scheduled_start: 'HH:MM', is_online?, location? }
-// location is required unless is_online is true.
+// Body: { name, scheduled_date: 'YYYY-MM-DD', scheduled_start: 'HH:MM', is_online?, location?,
+//         quiz_id? }
+// location is required unless is_online is true. quiz_id must be one of the planner's quizzes.
 // ---------------------------------------------------------------------------
 router.post(
   '/',
   asyncRoute(async (req, res) => {
     const userId = req.user.id;
     const input = normalizeEventInput(req.body);
+    await assertOwnQuiz(userId, input.quiz_id);
     const [created] = await sql`
-      INSERT INTO events (owner_id, name, scheduled_date, scheduled_start, is_online, location)
+      INSERT INTO events (owner_id, name, scheduled_date, scheduled_start, is_online, location, quiz_id)
       VALUES (
         ${userId}, ${input.name}, ${input.scheduled_date}::date, ${input.scheduled_start},
-        ${input.is_online}, ${input.location}
+        ${input.is_online}, ${input.location}, ${input.quiz_id}
       )
       RETURNING id
     `;
@@ -67,6 +70,7 @@ router.patch(
     const { id } = req.params;
     const current = await findOwnedEvent(userId, id);
     const input = normalizeEventInput({ ...current, ...req.body });
+    if (input.quiz_id !== current.quiz_id) await assertOwnQuiz(userId, input.quiz_id);
     await sql`
       UPDATE events SET
         name            = ${input.name},
@@ -74,6 +78,7 @@ router.patch(
         scheduled_start = ${input.scheduled_start},
         is_online       = ${input.is_online},
         location        = ${input.location},
+        quiz_id         = ${input.quiz_id},
         updated_at      = NOW()
       WHERE id = ${id} AND owner_id = ${userId}
     `;

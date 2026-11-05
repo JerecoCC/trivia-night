@@ -23,6 +23,7 @@ describe('normalizeEventInput', () => {
       scheduled_start: '19:30',
       is_online: false,
       location: 'The Crown',
+      quiz_id: null,
     });
   });
 
