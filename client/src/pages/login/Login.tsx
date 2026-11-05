@@ -1,0 +1,119 @@
+import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
+import { faLightbulb } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useAuth } from '@/context/AuthContext';
+import Button from '@jerecocc/tracker-ui/components/Button/Button';
+import Card from '@jerecocc/tracker-ui/components/Card/Card';
+import Divider from '@jerecocc/tracker-ui/components/Divider/Divider';
+import { ControlledInputField } from '@/components/form/ControlledFields';
+import GoogleButton from '@/shared/GoogleButton/GoogleButton';
+import styles from '@/shared/AuthPage/AuthPage.module.scss';
+
+interface LoginForm {
+  email: string;
+  password: string;
+}
+
+const LoginPage = () => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<LoginForm>({
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const handleLogin = handleSubmit(async (values) => {
+    try {
+      await login(values);
+      navigate('/dashboard');
+    } catch (err) {
+      const e = err as { response?: { data?: { error?: string } } };
+      toast.error(e?.response?.data?.error || 'Login failed. Please try again.');
+    }
+  });
+
+  return (
+    <div className={styles.page}>
+      <Card
+        variant="light"
+        className={styles.authCard}
+        data-theme="light"
+      >
+        <h1 className={styles.title}>
+          <FontAwesomeIcon
+            icon={faLightbulb}
+            style={{ fontSize: '1.1em' }}
+          />{' '}
+          Trivia Night
+        </h1>
+        <h2 className={styles.subtitle}>Sign in to your account</h2>
+
+        <form
+          onSubmit={handleLogin}
+          className={styles.form}
+        >
+          <ControlledInputField
+            control={control}
+            name="email"
+            type="email"
+            label="Email"
+            placeholder="you@example.com"
+            autoComplete="email"
+            wrapperClassName={styles.authField}
+            required
+            rules={{ required: 'Email is required.' }}
+          />
+
+          <ControlledInputField
+            control={control}
+            name="password"
+            type="password"
+            label="Password"
+            placeholder="Password"
+            autoComplete="current-password"
+            wrapperClassName={styles.authField}
+            required
+            rules={{ required: 'Password is required.' }}
+          />
+
+          <Button
+            className={styles.primaryBtn}
+            type="submit"
+            size="large"
+            icon="account_circle"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Signing in...' : 'Sign in'}
+          </Button>
+        </form>
+
+        <Divider
+          className={styles.authDivider}
+          text="or"
+        />
+
+        <GoogleButton label="Sign in with Google" />
+
+        <p className={styles.footer}>
+          Don&apos;t have an account?{' '}
+          <Link
+            className={styles.link}
+            to="/signup"
+          >
+            Sign up
+          </Link>
+        </p>
+      </Card>
+    </div>
+  );
+};
+
+export default LoginPage;

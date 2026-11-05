@@ -1,0 +1,288 @@
+@use "styles/colors" as *;
+@use "styles/mixins" as *;
+
+// ── Shell ──────────────────────────────────────────────────────────────
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  background: var(--app-surface, #{$bg-card});
+  border-bottom: 1px solid var(--app-border, #{$border});
+  flex-shrink: 0;
+}
+
+// ── Title row (hamburger + title + profile) ────────────────────────────
+.titleRow {
+  --title-row-inline-spacing: #{$space-xl};
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 var(--title-row-inline-spacing);
+
+  @media (max-width: $screen-phone-max) {
+    --title-row-inline-spacing: #{$space-md};
+  }
+}
+
+// ── Left / right slots ─────────────────────────────────────────────────
+.left,
+.right {
+  display: flex;
+  align-items: center;
+  gap: $space-lg;
+}
+
+.left {
+  flex: 1;
+  min-width: 0;
+  gap: var(--title-row-inline-spacing);
+}
+
+.right {
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.mobileTitleLeft {
+  display: none;
+  align-items: center;
+  flex-shrink: 0;
+
+  &:empty {
+    display: none;
+  }
+
+  @media (max-width: $screen-tablet-max) {
+    display: flex;
+  }
+}
+
+// ── Page title ─────────────────────────────────────────────────────────
+.title {
+  font-size: $font-xl;
+  font-weight: 700;
+  color: var(--app-text-strong, #{$text-bright});
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// On mobile: hidden when tabs are present (active tab label replaces it)
+.titleHiddenMobile {
+  @media (max-width: $screen-tablet-max) {
+    display: none;
+  }
+}
+
+// Active tab name shown in header title position – mobile only
+.titleMobileTab {
+  font-size: $font-xl;
+  font-weight: 700;
+  color: var(--app-text-strong, #{$text-bright});
+  margin: 0;
+  white-space: nowrap;
+  display: none;
+
+  @media (max-width: $screen-tablet-max) {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// ── Mobile tab strip ───────────────────────────────────────────────────
+.mobileTab {
+  &Bar {
+    display: none;
+
+    @media (max-width: $screen-tablet-max) {
+      display: flex;
+      overflow-x: auto;
+      padding: 0 $space-lg;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+  }
+
+  flex-shrink: 0;
+  position: relative;
+  background: none;
+  border: none;
+  padding: $space-sm $space-2xl;
+  font-size: $font-nav;
+  font-weight: 500;
+  color: var(--app-text-subtle, #{$text-light});
+  cursor: pointer;
+  transition: color $transition-fast;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    border-radius: $radius-sm $radius-sm 0 0;
+    background: $accent;
+    opacity: 0;
+    transition: opacity $transition-fast;
+  }
+
+  &:hover {
+    color: var(--app-text, #{$text-body});
+  }
+
+  &Active {
+    color: $accent-light;
+
+    &::after {
+      opacity: 1;
+    }
+
+    &:hover {
+      color: $accent-light;
+    }
+  }
+}
+
+// ── Hamburger (mobile only) ────────────────────────────────────────────
+.hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  border-radius: $radius-md;
+  color: var(--app-text-strong, #{$text-bright});
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    background: var(--app-hover-bg, rgba(255, 255, 255, 0.06));
+  }
+
+  @media (max-width: $screen-tablet-max) {
+    display: flex;
+    order: 2;
+  }
+}
+
+// ── User profile chip ──────────────────────────────────────────────────
+.profile {
+  &Chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: $space-xs;
+
+    @media (max-width: #{$screen-tablet-max}) {
+      display: none;
+    }
+  }
+
+  &Btn {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    padding: $space-xs $space-md;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--app-text, #{$text-body});
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+      background: var(--app-hover-bg, rgba(255, 255, 255, 0.06));
+    }
+  }
+}
+
+// ── Avatar ─────────────────────────────────────────────────────────────
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+
+  &Initials {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: $accent;
+    color: #fff;
+    font-size: $font-xs;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+  }
+}
+
+.displayName {
+  font-size: $font-sm;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+// ── Chevron ────────────────────────────────────────────────────────────
+.chevron {
+  color: var(--app-text-muted, #{$text-dim});
+  transition: transform 0.2s;
+
+  &Open {
+    color: var(--app-text-muted, #{$text-dim});
+    transform: rotate(180deg);
+    transition: transform 0.2s;
+  }
+}
+
+// ── Dropdown ───────────────────────────────────────────────────────────
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 168px;
+  background: var(--app-surface, #{$bg-card});
+  border: 1px solid var(--app-border, #{$border});
+  border-radius: $radius-md;
+  padding: $space-xs 0;
+  box-shadow: 0 8px 24px var(--app-shadow, rgba(0, 0, 0, 0.4));
+  z-index: 100;
+
+  &Item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: $space-sm;
+    padding: $space-sm $space-lg;
+    background: transparent;
+    border: none;
+    color: var(--app-text, #{$text-body});
+    font-size: $font-sm;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+      background 0.12s,
+      color 0.12s;
+
+    &:hover {
+      background: var(--app-hover-bg, rgba(255, 255, 255, 0.06));
+      color: var(--app-text-strong, #{$text-bright});
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "trivia-night",
+  "version": "0.1.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "build": "npm run build --prefix client",
+    "lint": "npm run lint --prefix client",
+    "test": "npm test --prefix client -- --runInBand && npm test --prefix server -- --runInBand",
+    "test:client": "npm test --prefix client -- --runInBand",
+    "test:server": "npm test --prefix server -- --runInBand",
+    "typecheck": "node client/node_modules/typescript/bin/tsc --noEmit --project client/tsconfig.app.json && node client/node_modules/typescript/bin/tsc --noEmit --project client/tsconfig.node.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
