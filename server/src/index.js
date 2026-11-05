@@ -12,6 +12,8 @@ require('./config/passport');
 
 const authRoutes = require('./routes/auth');
 const eventsRoutes = require('./routes/events');
+const quizzesRoutes = require('./routes/quizzes');
+const uploadsRoutes = require('./routes/uploads');
 
 const app = express();
 const PORT = process.env.PORT || 5004;
@@ -65,6 +67,8 @@ app.use((_req, _res, next) => {
 // ---------------------------------------------------------------------------
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
+app.use('/api/quizzes', quizzesRoutes);
+app.use('/api/uploads', uploadsRoutes);
 
 app.get('/api/health', async (_req, res) => {
   try {
