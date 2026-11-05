@@ -21,6 +21,7 @@
     "@tiptap/pm": "^3.22.2",
     "@tiptap/react": "^3.22.2",
     "@tiptap/starter-kit": "^3.22.2",
+    "@vercel/blob": "^2.8.2",
     "axios": "^1.13.6",
     "classnames": "^2.5.1",
     "react": "^18.3.1",
