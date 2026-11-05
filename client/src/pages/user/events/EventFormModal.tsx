@@ -3,6 +3,7 @@ import { Controller, useForm, useWatch } from 'react-hook-form';
 import {
   ControlledDatePickerField,
   ControlledInputField,
+  ControlledSelectField,
   ControlledTimePickerField,
 } from '@/components/form/ControlledFields';
 import FormField, {
@@ -12,6 +13,7 @@ import Modal from '@jerecocc/tracker-ui/components/Modal/Modal';
 import Toggle from '@jerecocc/tracker-ui/components/Toggle/Toggle';
 import useBackgroundModalAction from '@/hooks/useBackgroundModalAction';
 import { type EventInput, type EventRecord } from '@/hooks/useEvents';
+import useQuizzes from '@/hooks/useQuizzes';
 import styles from './Events.module.scss';
 
 // The form keeps a typed location while the event is online, so switching back restores it.
@@ -21,6 +23,8 @@ interface FormValues {
   scheduled_start: string;
   is_online: boolean;
   location: string;
+  /** '' for no quiz. */
+  quiz_id: string;
 }
 
 interface Props {
@@ -41,6 +45,7 @@ const EventFormModal = (props: Props) => {
       scheduled_start: editTarget?.scheduled_start ?? '',
       is_online: editTarget?.is_online ?? false,
       location: editTarget?.location ?? '',
+      quiz_id: editTarget?.quiz_id ?? '',
     }),
     [editTarget],
   );
@@ -56,6 +61,14 @@ const EventFormModal = (props: Props) => {
   });
 
   const isOnline = useWatch({ control, name: 'is_online' });
+  const { quizzes } = useQuizzes();
+  const quizOptions = useMemo(
+    () => [
+      { value: '', label: 'No quiz yet' },
+      ...quizzes.map((quiz) => ({ value: quiz.id, label: quiz.name })),
+    ],
+    [quizzes],
+  );
 
   useLayoutEffect(() => {
     reset(formValues);
@@ -80,6 +93,7 @@ const EventFormModal = (props: Props) => {
       scheduled_start: data.scheduled_start,
       is_online: data.is_online,
       location: data.is_online ? null : data.location.trim(),
+      quiz_id: data.quiz_id || null,
     };
     void runSettled(() => (editTarget ? updateEvent(editTarget.id, payload) : addEvent(payload)), {
       pending: editTarget ? 'Saving event…' : 'Creating event…',
@@ -174,6 +188,15 @@ const EventFormModal = (props: Props) => {
             }}
           />
         )}
+
+        <ControlledSelectField
+          label="Quiz"
+          sublabel="Only you can see which quiz an event plays."
+          control={control}
+          name="quiz_id"
+          options={quizOptions}
+          disabled={isSubmitting}
+        />
       </form>
     </Modal>
   );

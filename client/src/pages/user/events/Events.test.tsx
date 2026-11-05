@@ -4,24 +4,12 @@ import { todayDateKey } from '@/lib/eventSchedule';
 import EventsPage from './Events';
 
 // Native inputs stand in for the custom pickers so the form can be filled with fireEvent.change.
-jest.mock('@/components/form/ControlledFields', () => {
-  const { useController } = require('react-hook-form');
-  const MockField = ({ control, name, label, rules }: any) => {
-    const { field } = useController({ name, control, rules: rules ?? {} });
-    return (
-      <input
-        aria-label={label}
-        {...field}
-      />
-    );
-  };
-  return {
-    __esModule: true,
-    ControlledInputField: MockField,
-    ControlledDatePickerField: MockField,
-    ControlledTimePickerField: MockField,
-  };
-});
+jest.mock('@/components/form/ControlledFields', () => require('@/__mocks__/controlledFields'));
+
+jest.mock('@/hooks/useQuizzes', () => ({
+  __esModule: true,
+  default: () => ({ quizzes: [{ id: 'quiz-1', name: '80s Night' }] }),
+}));
 
 jest.mock('@/hooks/useEvents', () => ({
   __esModule: true,
@@ -39,6 +27,8 @@ const makeEvent = (overrides: Partial<EventRecord>): EventRecord => ({
   scheduled_start: '19:30',
   is_online: false,
   location: 'The Crown',
+  quiz_id: null,
+  quiz_name: null,
   owner_id: 'user-1',
   owner_name: 'Jane Planner',
   is_owner: true,
@@ -186,7 +176,22 @@ describe('EventsPage', () => {
         scheduled_start: '19:30',
         is_online: false,
         location: 'The Crown',
+        quiz_id: null,
       }),
+    );
+  });
+
+  it('plays one of the planner’s quizzes', async () => {
+    await setup([]);
+
+    await click(screen.getByRole('button', { name: /Create Event/ }));
+    await fillSchedule();
+    await change('Location', 'The Crown');
+    await change('Quiz', 'quiz-1');
+    await submitForm();
+
+    await waitFor(() =>
+      expect(mockAddEvent).toHaveBeenCalledWith(expect.objectContaining({ quiz_id: 'quiz-1' })),
     );
   });
 

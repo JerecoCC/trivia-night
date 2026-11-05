@@ -15,6 +15,9 @@ export interface EventRecord {
   is_online: boolean;
   /** Venue for in-person events; null when the event is online. */
   location: string | null;
+  /** The quiz this event plays. Only the planner sees it; null for everyone else. */
+  quiz_id: string | null;
+  quiz_name: string | null;
   owner_id: string;
   owner_name: string;
   /** True when the signed-in user planned this event and may edit or delete it. */
@@ -30,6 +33,8 @@ export interface EventInput {
   is_online: boolean;
   /** Required unless the event is online. */
   location: string | null;
+  /** One of the planner's own quizzes, or null for none yet. */
+  quiz_id: string | null;
 }
 
 const EVENTS_QUERY_KEY = ['events'];
