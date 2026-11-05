@@ -1,4 +1,12 @@
-const { pgTable, text, timestamp, uuid } = require("drizzle-orm/pg-core");
+const {
+  boolean,
+  date,
+  index,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} = require("drizzle-orm/pg-core");
 const { sql } = require("drizzle-orm");
 
 const id = () =>
@@ -19,4 +27,22 @@ const users = pgTable("users", {
   createdAt: createdAt(),
 });
 
-module.exports = { users };
+const events = pgTable(
+  "events",
+  {
+    id: id(),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    scheduledDate: date("scheduled_date").notNull(),
+    scheduledStart: text("scheduled_start").notNull(),
+    isOnline: boolean("is_online").notNull().default(false),
+    location: text("location"),
+    createdAt: createdAt(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("events_scheduled_date_idx").on(table.scheduledDate)],
+);
+
+module.exports = { users, events };
