@@ -13,6 +13,7 @@ const AuthCallbackPage = lazy(() => import('./pages/auth/callback/AuthCallback')
 const UserLayout = lazy(() => import('@/shared/UserLayout/UserLayout'));
 
 const UserDashboard = lazy(() => import('./pages/user/dashboard/UserDashboard'));
+const EventsPage = lazy(() => import('./pages/user/events/Events'));
 
 const PrivateRoute = (props: { children: ReactNode }) => {
   const { children } = props;
@@ -75,7 +76,10 @@ const router = createBrowserRouter([
         <UserLayout />
       </PrivateRoute>
     ),
-    children: [{ path: '/dashboard', element: <UserDashboard /> }],
+    children: [
+      { path: '/dashboard', element: <UserDashboard /> },
+      { path: '/events', element: <EventsPage /> },
+    ],
   },
   {
     path: '*',

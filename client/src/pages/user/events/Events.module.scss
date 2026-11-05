@@ -1,0 +1,82 @@
+@use 'styles/mixins' as *;
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: $page-section-gap;
+}
+
+.months {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.month {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.monthHeading {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: $font-xs;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+// Takes the same share of the row as the name column, so locations line up across rows the way
+// venues do in hockey-tracker's game list.
+.rowEnd {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+
+  @media (max-width: $screen-phone-max) {
+    flex: 0 1 auto;
+    max-width: 45%;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: $space-xs;
+  }
+}
+
+.location {
+  flex: 1;
+  min-width: 0;
+  color: var(--app-text-muted);
+  font-size: $font-xs;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @media (max-width: $screen-phone-max) {
+    flex: none;
+    max-width: 100%;
+
+    &:empty {
+      display: none;
+    }
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.scheduleRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: $space-md;
+  row-gap: $space-md;
+
+  @media (max-width: $screen-phone-max) {
+    grid-template-columns: 1fr;
+  }
+}

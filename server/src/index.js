@@ -11,6 +11,7 @@ const { initSchema, sql } = require('./db');
 require('./config/passport');
 
 const authRoutes = require('./routes/auth');
+const eventsRoutes = require('./routes/events');
 
 const app = express();
 const PORT = process.env.PORT || 5004;
@@ -63,6 +64,7 @@ app.use((_req, _res, next) => {
 // Routes
 // ---------------------------------------------------------------------------
 app.use('/api/auth', authRoutes);
+app.use('/api/events', eventsRoutes);
 
 app.get('/api/health', async (_req, res) => {
   try {

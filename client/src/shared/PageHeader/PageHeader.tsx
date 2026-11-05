@@ -7,6 +7,7 @@ import styles from './PageHeader.module.scss';
 
 const EXACT_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
+  '/events': 'Events',
 };
 
 const getTitle = (pathname: string): string => EXACT_TITLES[pathname] ?? '';

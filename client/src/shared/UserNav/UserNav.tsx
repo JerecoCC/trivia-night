@@ -9,7 +9,10 @@ interface NavItem {
   icon: string;
 }
 
-const NAV_ITEMS: NavItem[] = [{ label: 'Dashboard', path: '/dashboard', icon: 'apps' }];
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', path: '/dashboard', icon: 'apps' },
+  { label: 'Events', path: '/events', icon: 'calendar_month' },
+];
 
 interface UserNavProps {
   collapsed: boolean;
