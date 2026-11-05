@@ -1,0 +1,296 @@
+@use 'styles/mixins' as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.back {
+  align-self: flex-start;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  margin-bottom: $space-lg;
+}
+
+.description {
+  margin: 0;
+  color: var(--app-text);
+  font-size: $font-sm;
+  white-space: pre-line;
+}
+
+.hint {
+  margin: 0;
+  color: var(--app-text);
+  font-size: $font-sm;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+// ── Rounds ───────────────────────────────────────────────────────────────────
+
+.rounds {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.round {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  min-width: 0;
+}
+
+.roundHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.roundName {
+  margin: 0;
+  color: var(--app-text-strong);
+  font-size: $font-lg;
+  font-weight: 700;
+}
+
+.roundActions {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  margin-left: auto;
+}
+
+.intermission {
+  color: var(--app-text-muted);
+  font-size: $font-xs;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+// ── Categories ───────────────────────────────────────────────────────────────
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+// Lets the actions drop under the name and tags on narrow screens.
+.categoryHeader {
+  flex-wrap: wrap;
+  row-gap: $space-xs;
+}
+
+.categoryLabel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-sm;
+  min-width: 0;
+}
+
+.categoryName {
+  margin: 0;
+  color: var(--app-text-strong);
+  font-size: $font-base;
+  font-weight: 700;
+}
+
+.categoryBody {
+  padding: $space-sm;
+}
+
+// ── Reorder mode ─────────────────────────────────────────────────────────────
+
+.reorderList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reorderRow {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  min-width: 0;
+  padding: $space-sm $space-md;
+}
+
+.questionNumber {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: $radius-pill;
+  background: #ea580c;
+  color: #ffffff;
+  font-size: $font-xs;
+  font-weight: 700;
+}
+
+.reorderPrompt {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--app-text);
+  font-size: $font-sm;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Question form ────────────────────────────────────────────────────────────
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.fieldHint {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: $font-xs;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.choiceRow {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.choiceLetter {
+  flex-shrink: 0;
+  width: 1rem;
+  color: var(--app-text-muted);
+  font-size: $font-sm;
+  font-weight: 700;
+  text-align: center;
+}
+
+.choiceInput {
+  flex: 1;
+  min-width: 0;
+}
+
+// ── Question media ───────────────────────────────────────────────────────────
+
+.media {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.mediaList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mediaItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-xs;
+  border: 1px solid var(--app-border);
+  border-radius: $radius-md;
+}
+
+.mediaThumb {
+  display: block;
+  width: 6rem;
+  height: 3.5rem;
+  border-radius: $radius-sm;
+  background: #000000;
+  object-fit: cover;
+}
+
+.mediaThumbLink {
+  flex-shrink: 0;
+}
+
+.mediaAudio {
+  width: min(16rem, 100%);
+  height: 2.25rem;
+}
+
+.mediaName {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: $space-xs;
+  min-width: 8rem;
+  overflow: hidden;
+  color: var(--app-text);
+  font-size: $font-sm;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.mediaKindIcon {
+  flex-shrink: 0;
+  color: #ea580c;
+}
+
+.mediaAdd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-xs;
+}
+
+.mediaLinkInput {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-xs;
+}

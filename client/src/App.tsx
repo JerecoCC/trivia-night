@@ -14,6 +14,8 @@ const UserLayout = lazy(() => import('@/shared/UserLayout/UserLayout'));
 
 const UserDashboard = lazy(() => import('./pages/user/dashboard/UserDashboard'));
 const EventsPage = lazy(() => import('./pages/user/events/Events'));
+const QuizzesPage = lazy(() => import('./pages/user/quizzes/Quizzes'));
+const QuizDetailsPage = lazy(() => import('./pages/user/quizzes/details/QuizDetails'));
 
 const PrivateRoute = (props: { children: ReactNode }) => {
   const { children } = props;
@@ -79,6 +81,8 @@ const router = createBrowserRouter([
     children: [
       { path: '/dashboard', element: <UserDashboard /> },
       { path: '/events', element: <EventsPage /> },
+      { path: '/quizzes', element: <QuizzesPage /> },
+      { path: '/quizzes/:quizId', element: <QuizDetailsPage /> },
     ],
   },
   {

@@ -1,0 +1,19 @@
+@use 'styles/mixins' as *;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.quizIcon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: $radius-md;
+  background: #ea580c;
+  color: #ffffff;
+}

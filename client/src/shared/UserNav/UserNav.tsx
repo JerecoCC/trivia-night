@@ -12,6 +12,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: 'apps' },
   { label: 'Events', path: '/events', icon: 'calendar_month' },
+  { label: 'Quizzes', path: '/quizzes', icon: 'view_list' },
 ];
 
 interface UserNavProps {

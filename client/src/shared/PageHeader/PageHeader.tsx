@@ -8,9 +8,11 @@ import styles from './PageHeader.module.scss';
 const EXACT_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/events': 'Events',
+  '/quizzes': 'Quizzes',
 };
 
-const getTitle = (pathname: string): string => EXACT_TITLES[pathname] ?? '';
+const getTitle = (pathname: string): string =>
+  EXACT_TITLES[pathname] ?? (pathname.startsWith('/quizzes/') ? 'Quiz' : '');
 
 const getInitials = (name: string | undefined) =>
   (name ?? '')

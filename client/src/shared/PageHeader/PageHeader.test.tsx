@@ -34,6 +34,8 @@ describe('PageHeader – title resolution', () => {
   it.each([
     ['/dashboard', 'Dashboard'],
     ['/events', 'Events'],
+    ['/quizzes', 'Quizzes'],
+    ['/quizzes/abc', 'Quiz'],
   ])('shows "%s" title for %s', (pathname, title) => {
     setup(pathname);
     expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
