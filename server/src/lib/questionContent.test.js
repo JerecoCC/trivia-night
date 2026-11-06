@@ -66,19 +66,19 @@ describe('youtubeVideoId', () => {
 });
 
 describe('normalizeMedia', () => {
-  it('defaults to none and keeps up to four items', () => {
+  it('defaults to none and keeps one item', () => {
     expect(normalizeMedia(undefined)).toEqual([]);
     expect(
-      normalizeMedia([
-        { kind: 'image', url: ' https://e.com/a.jpg ', name: ' a.jpg ' },
-        { kind: 'youtube', url: 'https://youtu.be/dQw4w9WgXcQ' },
-      ]),
-    ).toEqual([
-      { kind: 'image', url: 'https://e.com/a.jpg', name: 'a.jpg' },
+      normalizeMedia([{ kind: 'video', url: ' https://e.com/a.mp4 ', name: ' a.mp4 ' }]),
+    ).toEqual([{ kind: 'video', url: 'https://e.com/a.mp4', name: 'a.mp4' }]);
+    expect(normalizeMedia([{ kind: 'youtube', url: 'https://youtu.be/dQw4w9WgXcQ' }])).toEqual([
       { kind: 'youtube', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', name: null },
     ]);
-    const five = Array.from({ length: 5 }, () => ({ kind: 'image', url: 'https://e.com/a.jpg' }));
-    expect(() => normalizeMedia(five)).toThrow(/up to 4/);
+    const two = [
+      { kind: 'image', url: 'https://e.com/a.jpg' },
+      { kind: 'image', url: 'https://e.com/b.jpg' },
+    ];
+    expect(() => normalizeMedia(two)).toThrow('A question can have one photo, video or sound clip');
   });
 
   it.each([

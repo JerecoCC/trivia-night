@@ -541,7 +541,7 @@ describe('question media', () => {
     sql.mockResolvedValueOnce([
       stored([
         { kind: 'audio', url: UPLOADED, name: 'song.mp3' },
-        { kind: 'image', url: LINKED, name: null },
+        { kind: 'audio', url: LINKED, name: null },
       ]),
     ]);
 

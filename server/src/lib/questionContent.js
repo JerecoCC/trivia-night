@@ -9,7 +9,7 @@ const { badRequest } = require('./validation');
 
 const PROMPT_TEXT_MAX = 500;
 const PROMPT_HTML_MAX = 5000;
-const MEDIA_MAX = 4;
+const MEDIA_MAX = 1;
 const MEDIA_NAME_MAX = 200;
 const MEDIA_URL_MAX = 2000;
 const MEDIA_KINDS = ['image', 'video', 'audio', 'youtube'];
@@ -136,12 +136,15 @@ function normalizeMediaItem(item, index) {
   return { kind: item.kind, url: parsed.toString(), name };
 }
 
-/** Validates a question's media: up to four photos, videos, sound clips or YouTube videos. */
+/**
+ * Validates a question's media: one photo, video, sound clip or YouTube video. It's kept as a
+ * list (of at most one) so the stored shape doesn't change if that limit ever does.
+ */
 function normalizeMedia(value) {
   if (value == null) return [];
   if (!Array.isArray(value)) throw badRequest('media must be a list');
   if (value.length > MEDIA_MAX) {
-    throw badRequest(`A question can have up to ${MEDIA_MAX} photos, videos or sound clips`);
+    throw badRequest('A question can have one photo, video or sound clip');
   }
   return value.map(normalizeMediaItem);
 }
