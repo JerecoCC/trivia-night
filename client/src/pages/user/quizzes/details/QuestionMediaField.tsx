@@ -1,23 +1,40 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFilm, faImage, faMusic, faPlay } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowUpFromBracket,
+  faFilm,
+  faImage,
+  faMusic,
+  faPlay,
+} from '@fortawesome/free-solid-svg-icons';
+import classNames from 'classnames';
 import Button from '@jerecocc/tracker-ui/components/Button/Button';
 import FormField from '@jerecocc/tracker-ui/components/FormField/FormField';
 import Input from '@jerecocc/tracker-ui/components/Input/Input';
+import SegmentedControl from '@jerecocc/tracker-ui/components/SegmentedControl/SegmentedControl';
 import { MAX_UPLOAD_BYTES, uploadQuestionMedia, useUploadsEnabled } from '@/hooks/useUploads';
 import { getApiErrorMessage } from '@/lib/apiClient';
 import {
   MAX_MEDIA,
   MEDIA_KIND_LABELS,
+  MEDIA_TYPE_INFO,
+  imageLinkFromHtml,
   mediaKindFromFile,
   mediaKindFromLink,
+  mediaType,
   youtubeVideoId,
   type MediaKind,
+  type MediaType,
   type QuestionMedia,
 } from '@/lib/quizzes';
 import styles from './QuizDetails.module.scss';
 
 const KIND_ICONS = { image: faImage, video: faFilm, audio: faMusic, youtube: faPlay };
+
+const TYPE_OPTIONS = (Object.keys(MEDIA_TYPE_INFO) as MediaType[]).map((type) => ({
+  value: type,
+  label: MEDIA_TYPE_INFO[type].label,
+}));
 
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
@@ -93,8 +110,11 @@ interface Props {
 }
 
 /**
- * The photos, videos, sound clips and YouTube videos shown with a question: uploaded files
- * (when uploads are set up) or pasted links.
+ * The one photo, video, sound clip or YouTube video shown with a question: an uploaded file
+ * (when uploads are set up) or a link. The planner picks Photo, Video or Audio first, which sets
+ * what the picker offers. Pasting a copied file anywhere in the form uploads it, replacing any
+ * media already there, like the score card's hero image. Pasting a link into the empty link box
+ * adds it. Whatever is added, the picked type follows it.
  */
 const QuestionMediaField = (props: Props) => {
   const { value, onChange, onUploadingChange, disabled = false } = props;
@@ -104,17 +124,23 @@ const QuestionMediaField = (props: Props) => {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState<Upload | null>(null);
 
+  const [chosenType, setChosenType] = useState<MediaType>('photo');
+
   const full = value.length >= MAX_MEDIA;
   const busy = disabled || uploading !== null;
+  // The question's media decides the type once it has some; until then, the planner's choice.
+  const shownType = value.length > 0 ? mediaType(value[0].kind) : chosenType;
+  const typeInfo = MEDIA_TYPE_INFO[shownType];
 
-  const add = (item: QuestionMedia) => {
+  /** A question has one media item, so a new one takes the place of any already there. */
+  const set = (item: QuestionMedia) => {
     setError(null);
-    onChange([...value, item]);
+    setChosenType(mediaType(item.kind));
+    onChange([item]);
   };
 
-  const addLink = (event?: FormEvent) => {
-    event?.preventDefault();
-    const url = link.trim();
+  const addLink = (input = link) => {
+    const url = input.trim();
     if (!url) return;
     if (!/^https:\/\//i.test(url)) {
       setError('Links must start with https://');
@@ -127,7 +153,7 @@ const QuestionMediaField = (props: Props) => {
       );
       return;
     }
-    add({ kind, url, name: null });
+    set({ kind, url, name: null });
     setLink('');
   };
 
@@ -148,7 +174,7 @@ const QuestionMediaField = (props: Props) => {
       const url = await uploadQuestionMedia(file, (percentage) =>
         setUploading({ name: file.name, percentage }),
       );
-      add({ kind, url, name: file.name });
+      set({ kind, url, name: file.name });
     } catch (err) {
       setError(getApiErrorMessage(err, `Couldn’t upload ${file.name}. Please try again.`));
     } finally {
@@ -156,6 +182,33 @@ const QuestionMediaField = (props: Props) => {
       onUploadingChange(false);
     }
   };
+
+  /** A copied file: uploaded, or, before uploads are set up, a copied web photo's link. */
+  const pasteFile = (data: DataTransfer) => {
+    if (busy) return;
+    if (uploadsEnabled) {
+      void uploadFile(data.files[0]);
+      return;
+    }
+    const imageLink = imageLinkFromHtml(data.getData('text/html'));
+    if (imageLink) set({ kind: 'image', url: imageLink, name: null });
+    else setError('File uploads aren’t set up yet, so paste a link instead.');
+  };
+
+  // Files are caught before the question editor, which would drop them. Read through a ref so
+  // the listener, added once, always sees the latest media.
+  const pasteFileRef = useRef(pasteFile);
+  pasteFileRef.current = pasteFile;
+  useEffect(() => {
+    const onPaste = (event: ClipboardEvent) => {
+      if (!event.clipboardData?.files.length) return;
+      event.preventDefault();
+      event.stopPropagation();
+      pasteFileRef.current(event.clipboardData);
+    };
+    document.addEventListener('paste', onPaste, true);
+    return () => document.removeEventListener('paste', onPaste, true);
+  }, []);
 
   return (
     <FormField
@@ -169,6 +222,19 @@ const QuestionMediaField = (props: Props) => {
           role="group"
           aria-labelledby={labelId}
         >
+          {/* Locked while there's media: remove it to pick another type. */}
+          <SegmentedControl
+            ariaLabel="Media type"
+            value={shownType}
+            onChange={(next) => {
+              setChosenType(next as MediaType);
+              setError(null);
+            }}
+            options={TYPE_OPTIONS}
+            disabled={busy || value.length > 0}
+            fullWidth
+          />
+
           {value.length > 0 && (
             <ul className={styles.mediaList}>
               {value.map((item, index) => (
@@ -193,7 +259,11 @@ const QuestionMediaField = (props: Props) => {
                     tooltip="Remove"
                     aria-label={`Remove ${mediaLabel(item)}`}
                     disabled={busy}
-                    onClick={() => onChange(value.filter((_, i) => i !== index))}
+                    onClick={() => {
+                      // Keep its type picked, ready for a replacement.
+                      setChosenType(mediaType(item.kind));
+                      onChange(value.filter((_, i) => i !== index));
+                    }}
                   />
                 </li>
               ))}
@@ -210,61 +280,79 @@ const QuestionMediaField = (props: Props) => {
           )}
 
           {!full && (
-            <div className={styles.mediaAdd}>
-              <Input
-                type="url"
-                value={link}
-                onChange={(next) => {
-                  setLink(next);
-                  setError(null);
-                }}
-                onKeyDown={(event) => {
-                  // Enter adds the link instead of submitting the question.
-                  if (event.key === 'Enter') addLink(event);
-                }}
-                placeholder="Paste a YouTube, photo, video or sound clip link"
-                aria-label="Media link"
-                disabled={busy}
-                className={styles.mediaLinkInput}
-              />
-              <Button
-                type="button"
-                variant="outlined"
-                intent="neutral"
-                icon="add"
-                size="small"
-                disabled={busy || !link.trim()}
-                onClick={() => addLink()}
+            <>
+              {/* Like the score card's hero image: click to browse, or paste a copied file. */}
+              <label
+                className={classNames(styles.mediaDrop, {
+                  [styles.mediaDropDisabled]: busy || !uploadsEnabled,
+                })}
               >
-                Add Link
-              </Button>
-              {/* Until uploads are set up, media is added by link, and the tooltip says why. */}
-              <Button
-                type="button"
-                variant="outlined"
-                intent="accent"
-                icon="image"
-                size="small"
-                disabled={busy || !uploadsEnabled}
-                tooltip={uploadsEnabled ? undefined : 'File uploads aren’t set up yet'}
-                onClick={() => fileInput.current?.click()}
-              >
-                Upload File
-              </Button>
-              <input
-                ref={fileInput}
-                type="file"
-                accept="image/*,video/*,audio/*"
-                className={styles.visuallyHidden}
-                tabIndex={-1}
-                aria-hidden
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  event.target.value = '';
-                  if (file) void uploadFile(file);
-                }}
-              />
-            </div>
+                <FontAwesomeIcon
+                  icon={faArrowUpFromBracket}
+                  className={styles.mediaDropIcon}
+                />
+                <span className={styles.mediaDropPrimary}>Upload {typeInfo.title}</span>
+                <span className={styles.mediaDropSub}>
+                  {uploadsEnabled
+                    ? 'Click to browse · or paste from clipboard'
+                    : 'File uploads aren’t set up yet'}
+                </span>
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept={typeInfo.accept}
+                  className={styles.visuallyHidden}
+                  aria-label="Upload media"
+                  disabled={busy || !uploadsEnabled}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = '';
+                    if (file) void uploadFile(file);
+                  }}
+                />
+              </label>
+
+              <div className={styles.mediaAdd}>
+                <Input
+                  type="url"
+                  value={link}
+                  onChange={(next) => {
+                    setLink(next);
+                    setError(null);
+                  }}
+                  onKeyDown={(event) => {
+                    // Enter adds the link instead of submitting the question.
+                    if (event.key !== 'Enter') return;
+                    event.preventDefault();
+                    addLink();
+                  }}
+                  onPaste={(event) => {
+                    // A link pasted into the empty box is added straight away. If it can't be
+                    // used, it stays in the box beside the reason.
+                    const pasted = event.clipboardData.getData('text').trim();
+                    if (link.trim() || !/^https?:\/\//i.test(pasted)) return;
+                    event.preventDefault();
+                    setLink(pasted);
+                    addLink(pasted);
+                  }}
+                  placeholder={typeInfo.linkPlaceholder}
+                  aria-label="Media link"
+                  disabled={busy}
+                  className={styles.mediaLinkInput}
+                />
+                <Button
+                  type="button"
+                  variant="outlined"
+                  intent="neutral"
+                  icon="add"
+                  size="small"
+                  disabled={busy || !link.trim()}
+                  onClick={() => addLink()}
+                >
+                  Add Link
+                </Button>
+              </div>
+            </>
           )}
         </div>
       )}

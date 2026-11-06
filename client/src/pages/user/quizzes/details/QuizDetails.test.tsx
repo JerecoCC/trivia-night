@@ -594,14 +594,13 @@ describe('QuizDetailsPage', () => {
       expect(screen.getByText('Answer: False · 1 sound clip')).toBeInTheDocument();
     });
 
-    it('saves YouTube and photo links with a formatted question', async () => {
+    it('saves a YouTube link with a formatted question', async () => {
       await setup(FLAT);
 
       await click(screen.getByRole('button', { name: /Add Question/ }));
       await click(screen.getByRole('button', { name: 'True or False' }));
       await change('Question editor', '<p>This is <strong>Rick</strong>.</p>');
       await addLink('https://youtu.be/dQw4w9WgXcQ');
-      await addLink('https://example.com/photos/rick.JPG');
       expect(screen.getByRole('button', { name: 'Remove YouTube video' })).toBeInTheDocument();
       await submitQuestion();
 
@@ -609,10 +608,7 @@ describe('QuizDetailsPage', () => {
         expect(mocks.addQuestion).toHaveBeenCalledWith(
           expect.objectContaining({
             prompt: '<p>This is <strong>Rick</strong>.</p>',
-            media: [
-              { kind: 'youtube', url: 'https://youtu.be/dQw4w9WgXcQ', name: null },
-              { kind: 'image', url: 'https://example.com/photos/rick.JPG', name: null },
-            ],
+            media: [{ kind: 'youtube', url: 'https://youtu.be/dQw4w9WgXcQ', name: null }],
           }),
         ),
       );
@@ -701,7 +697,8 @@ describe('QuizDetailsPage', () => {
 
       await click(screen.getByRole('button', { name: /Add Question/ }));
 
-      expect(screen.getByRole('button', { name: /Upload File/ })).toBeDisabled();
+      expect(screen.getByLabelText('Upload media')).toBeDisabled();
+      expect(screen.getByText('File uploads aren’t set up yet')).toBeInTheDocument();
       expect(screen.getByRole('textbox', { name: 'Media link' })).toBeEnabled();
     });
 
@@ -718,6 +715,142 @@ describe('QuizDetailsPage', () => {
           expect.objectContaining({ media: [] }),
         ),
       );
+    });
+
+    it('offers to add media only until the question has one', async () => {
+      await setup(FLAT);
+
+      await click(screen.getByRole('button', { name: 'Edit question 2' }));
+      expect(screen.queryByLabelText('Media link')).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('Upload media')).not.toBeInTheDocument();
+
+      await click(screen.getByRole('button', { name: 'Remove bat.mp3' }));
+      expect(screen.getByLabelText('Media link')).toBeInTheDocument();
+      expect(screen.getByLabelText('Upload media')).toBeInTheDocument();
+    });
+
+    // Paste events carry what was copied; these stand in for the browser's clipboard.
+    const clipboard = (files: File[], data: Record<string, string> = {}) => ({
+      clipboardData: { files, getData: (type: string) => data[type] ?? '' },
+    });
+
+    it('adds a link pasted into the link box straight away', async () => {
+      await setup(FLAT);
+
+      await click(screen.getByRole('button', { name: /Add Question/ }));
+      await act(async () => {
+        fireEvent.paste(
+          screen.getByLabelText('Media link'),
+          clipboard([], { text: 'https://youtu.be/dQw4w9WgXcQ' }),
+        );
+      });
+
+      expect(screen.getByRole('button', { name: 'Remove YouTube video' })).toBeInTheDocument();
+      // One media item per question, so there's nowhere to add another.
+      expect(screen.queryByLabelText('Media link')).not.toBeInTheDocument();
+      // The type follows what was added.
+      expect(screen.getByRole('button', { name: 'Video' })).toBeDisabled();
+    });
+
+    it('asks whether to add a photo, video or audio', async () => {
+      await setup(FLAT);
+
+      await click(screen.getByRole('button', { name: /Add Question/ }));
+      expect(screen.getByText('Upload Photo')).toBeInTheDocument();
+      expect(screen.getByLabelText('Upload media')).toHaveAttribute('accept', 'image/*');
+
+      await click(screen.getByRole('button', { name: 'Audio' }));
+      expect(screen.getByText('Upload Sound Clip')).toBeInTheDocument();
+      expect(screen.getByLabelText('Upload media')).toHaveAttribute('accept', 'audio/*');
+      expect(screen.getByLabelText('Media link')).toHaveAttribute(
+        'placeholder',
+        'Or paste a sound clip link',
+      );
+    });
+
+    it("shows an edited question's media type, locked until the media is removed", async () => {
+      await setup(FLAT);
+
+      await click(screen.getByRole('button', { name: 'Edit question 2' }));
+      expect(screen.getByRole('button', { name: 'Audio' })).toBeDisabled();
+
+      await click(screen.getByRole('button', { name: 'Remove bat.mp3' }));
+      expect(screen.getByRole('button', { name: 'Audio' })).toBeEnabled();
+      expect(screen.getByText('Upload Sound Clip')).toBeInTheDocument();
+    });
+
+    it('uploads a file pasted anywhere in the form', async () => {
+      (uploadQuestionMedia as jest.Mock).mockResolvedValue(
+        'https://abc.public.blob.vercel-storage.com/quiz-media/shot-x1.png',
+      );
+      await setup(FLAT);
+
+      await click(screen.getByRole('button', { name: /Add Question/ }));
+      const file = new File(['png'], 'shot.png', { type: 'image/png' });
+      await act(async () => {
+        fireEvent.paste(screen.getByLabelText('Question editor'), clipboard([file]));
+      });
+
+      expect(uploadQuestionMedia).toHaveBeenCalledWith(file, expect.any(Function));
+      expect(await screen.findByRole('button', { name: 'Remove shot.png' })).toBeInTheDocument();
+    });
+
+    it('replaces the media with a pasted file', async () => {
+      (uploadQuestionMedia as jest.Mock).mockResolvedValue(
+        'https://abc.public.blob.vercel-storage.com/quiz-media/owl-x1.png',
+      );
+      await setup(FLAT);
+
+      await click(screen.getByRole('button', { name: 'Edit question 2' }));
+      const file = new File(['png'], 'owl.png', { type: 'image/png' });
+      await act(async () => {
+        fireEvent.paste(screen.getByLabelText('Question editor'), clipboard([file]));
+      });
+
+      expect(await screen.findByRole('button', { name: 'Remove owl.png' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Remove bat.mp3' })).not.toBeInTheDocument();
+      await submitQuestion('Save Changes');
+      await waitFor(() =>
+        expect(mocks.updateQuestion).toHaveBeenCalledWith(
+          'q-tf',
+          expect.objectContaining({
+            media: [
+              {
+                kind: 'image',
+                url: 'https://abc.public.blob.vercel-storage.com/quiz-media/owl-x1.png',
+                name: 'owl.png',
+              },
+            ],
+          }),
+        ),
+      );
+    });
+
+    it('adds a copied web photo by its link until uploads are set up', async () => {
+      (useUploadsEnabled as jest.Mock).mockReturnValue(false);
+      await setup(FLAT);
+
+      await click(screen.getByRole('button', { name: /Add Question/ }));
+      const file = new File(['png'], 'image.png', { type: 'image/png' });
+      await act(async () => {
+        fireEvent.paste(
+          screen.getByLabelText('Question editor'),
+          clipboard([file], { 'text/html': '<img src="https://cdn.example.com/owl.jpg">' }),
+        );
+      });
+
+      expect(uploadQuestionMedia).not.toHaveBeenCalled();
+      expect(
+        screen.getByRole('button', { name: 'Remove Photo from cdn.example.com' }),
+      ).toBeInTheDocument();
+
+      // A copied file with no web link can't be added yet.
+      await act(async () => {
+        fireEvent.paste(screen.getByLabelText('Question editor'), clipboard([file]));
+      });
+      expect(
+        screen.getByText('File uploads aren’t set up yet, so paste a link instead.'),
+      ).toBeInTheDocument();
     });
   });
 });

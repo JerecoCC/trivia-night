@@ -1,4 +1,11 @@
-import { answerLabel, choiceLetter, questionTitle, quizCountsLabel } from './quizzes';
+import {
+  answerLabel,
+  choiceLetter,
+  imageLinkFromHtml,
+  mediaType,
+  questionTitle,
+  quizCountsLabel,
+} from './quizzes';
 
 describe('quizzes', () => {
   it('labels the correct answer for each question type', () => {
@@ -53,5 +60,21 @@ describe('quizzes', () => {
     expect(questionTitle({ prompt: '', media: [{ ...clip, kind: 'youtube' as const }] })).toBe(
       'YouTube video question',
     );
+  });
+
+  it('groups media into photos, videos (YouTube included) and audio', () => {
+    expect(mediaType('image')).toBe('photo');
+    expect(mediaType('youtube')).toBe('video');
+    expect(mediaType('video')).toBe('video');
+    expect(mediaType('audio')).toBe('audio');
+  });
+
+  it('finds the web link of a copied photo', () => {
+    expect(imageLinkFromHtml('<p>x</p><img src="https://cdn.example.com/a.jpg">')).toBe(
+      'https://cdn.example.com/a.jpg',
+    );
+    expect(imageLinkFromHtml('<img src="http://cdn.example.com/a.jpg">')).toBeNull();
+    expect(imageLinkFromHtml('<img src="data:image/png;base64,AAAA">')).toBeNull();
+    expect(imageLinkFromHtml('')).toBeNull();
   });
 });

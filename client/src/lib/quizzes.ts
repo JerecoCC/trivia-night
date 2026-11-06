@@ -121,7 +121,8 @@ export const STRUCTURE_LABELS: Record<QuizStructure, string> = {
 
 export const MIN_CHOICES = 2;
 export const MAX_CHOICES = 6;
-export const MAX_MEDIA = 4;
+/** A question can show one photo, video, sound clip or YouTube video. */
+export const MAX_MEDIA = 1;
 export const PROMPT_MAX = 500;
 
 export const MEDIA_KIND_LABELS: Record<MediaKind, { singular: string; plural: string }> = {
@@ -180,6 +181,44 @@ export const mediaKindFromFile = (file: File): MediaKind | null => {
   const [group] = file.type.split('/');
   if (group === 'image' || group === 'video' || group === 'audio') return group;
   return EXTENSION_KINDS.find(([pattern]) => pattern.test(file.name))?.[1] ?? null;
+};
+
+/** What a planner chooses to add to a question; a YouTube link counts as a video. */
+export type MediaType = 'photo' | 'video' | 'audio';
+
+export const mediaType = (kind: MediaKind): MediaType =>
+  kind === 'image' ? 'photo' : kind === 'audio' ? 'audio' : 'video';
+
+/** Each type's names, the files its picker offers, and what its link box asks for. */
+export const MEDIA_TYPE_INFO: Record<
+  MediaType,
+  { label: string; title: string; accept: string; linkPlaceholder: string }
+> = {
+  photo: {
+    label: 'Photo',
+    title: 'Photo',
+    accept: 'image/*',
+    linkPlaceholder: 'Or paste a photo link',
+  },
+  video: {
+    label: 'Video',
+    title: 'Video',
+    accept: 'video/*',
+    linkPlaceholder: 'Or paste a YouTube or video link',
+  },
+  audio: {
+    label: 'Audio',
+    title: 'Sound Clip',
+    accept: 'audio/*',
+    linkPlaceholder: 'Or paste a sound clip link',
+  },
+};
+
+/** The https link of the first image in copied web content, such as a photo copied from a page. */
+export const imageLinkFromHtml = (html: string): string | null => {
+  if (!html) return null;
+  const src = new DOMParser().parseFromString(html, 'text/html').querySelector('img')?.src ?? '';
+  return src.toLowerCase().startsWith('https://') ? src : null;
 };
 
 /** "1 photo · 2 sound clips". */

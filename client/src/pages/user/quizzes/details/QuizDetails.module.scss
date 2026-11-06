@@ -276,6 +276,64 @@
   color: #ea580c;
 }
 
+// Click to browse, or paste a copied file, like the hockey tracker's score card hero image.
+.mediaDrop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-xs;
+  min-height: 7.5rem;
+  padding: $space-md;
+  border: 1.5px dashed var(--app-field-border);
+  border-radius: $radius-md;
+  background: var(--app-field-bg);
+  color: var(--app-text-muted);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color $transition-fast,
+    background $transition-fast,
+    color $transition-fast;
+
+  &:hover,
+  &:focus-within {
+    border-color: var(--app-field-border-hover);
+    background: var(--app-field-bg-hover);
+    color: var(--app-text-strong);
+  }
+
+  &:focus-within {
+    outline: 2px solid #ea580c;
+    outline-offset: 2px;
+  }
+}
+
+.mediaDropDisabled {
+  cursor: default;
+  opacity: 0.6;
+
+  &:hover {
+    border-color: var(--app-field-border);
+    background: var(--app-field-bg);
+    color: var(--app-text-muted);
+  }
+}
+
+.mediaDropIcon {
+  font-size: 1.5rem;
+}
+
+.mediaDropPrimary {
+  color: var(--app-text);
+  font-size: $font-base;
+  font-weight: 600;
+}
+
+.mediaDropSub {
+  font-size: $font-sm;
+}
+
 .mediaAdd {
   display: flex;
   flex-wrap: wrap;
