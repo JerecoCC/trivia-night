@@ -111,6 +111,9 @@ const QuestionFormModal = (props: Props) => {
   const { open, editTarget, categories, rounds = [], defaultCategoryId, onClose, onSave } = props;
   const categorized = categories !== null;
   const [uploading, setUploading] = useState(false);
+  // The editor is created before the form loads the question being edited, and would write its
+  // empty content back over it. A new key recreates it after each reset, with the right content.
+  const [editorKey, setEditorKey] = useState(0);
 
   const categoryType = (categoryId: string | null): QuestionType =>
     categories?.find((category) => category.id === categoryId)?.question_type ?? 'multiple_choice';
@@ -138,6 +141,7 @@ const QuestionFormModal = (props: Props) => {
 
   useLayoutEffect(() => {
     reset(formValues);
+    setEditorKey((key) => key + 1);
   }, [formValues, reset]);
 
   const handleClose = useCallback(() => {
@@ -246,6 +250,7 @@ const QuestionFormModal = (props: Props) => {
                   aria-labelledby={labelId}
                 >
                   <RichTextEditor
+                    key={editorKey}
                     content={field.value}
                     onChange={field.onChange}
                     autoFocus={false}
