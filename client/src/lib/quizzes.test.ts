@@ -1,4 +1,4 @@
-import { answerLabel, choiceLetter, quizCountsLabel } from './quizzes';
+import { answerLabel, choiceLetter, questionTitle, quizCountsLabel } from './quizzes';
 
 describe('quizzes', () => {
   it('labels the correct answer for each question type', () => {
@@ -42,5 +42,16 @@ describe('quizzes', () => {
         round_count: 2,
       }),
     ).toBe('30 questions · 6 categories · 2 rounds');
+  });
+
+  it('titles a question by its words, or by its media when it has none', () => {
+    const clip = { kind: 'audio' as const, url: 'https://cdn.example.com/a.mp3', name: null };
+    expect(questionTitle({ prompt: '<p>Name <em>that</em> tune</p>', media: [clip] })).toBe(
+      'Name that tune',
+    );
+    expect(questionTitle({ prompt: '', media: [clip] })).toBe('Sound clip question');
+    expect(questionTitle({ prompt: '', media: [{ ...clip, kind: 'youtube' as const }] })).toBe(
+      'YouTube video question',
+    );
   });
 });

@@ -160,7 +160,6 @@ const QuestionMediaField = (props: Props) => {
   return (
     <FormField
       label="Media"
-      sublabel={`Up to ${MAX_MEDIA} photos, videos, sound clips or YouTube videos, shown with the question.`}
       invalid={error !== null}
       errorMessage={error ?? undefined}
     >
@@ -239,6 +238,7 @@ const QuestionMediaField = (props: Props) => {
               >
                 Add Link
               </Button>
+              {/* Until uploads are set up, media is added by link, and the tooltip says why. */}
               <Button
                 type="button"
                 variant="outlined"
@@ -246,6 +246,7 @@ const QuestionMediaField = (props: Props) => {
                 icon="image"
                 size="small"
                 disabled={busy || !uploadsEnabled}
+                tooltip={uploadsEnabled ? undefined : 'File uploads aren’t set up yet'}
                 onClick={() => fileInput.current?.click()}
               >
                 Upload File
@@ -264,12 +265,6 @@ const QuestionMediaField = (props: Props) => {
                 }}
               />
             </div>
-          )}
-          {!full && !uploadsEnabled && (
-            <p className={styles.fieldHint}>
-              File uploads aren’t set up yet, so add photos, videos and sound clips as links for
-              now.
-            </p>
           )}
         </div>
       )}

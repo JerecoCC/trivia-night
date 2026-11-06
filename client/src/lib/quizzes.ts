@@ -193,6 +193,14 @@ export const mediaSummary = (media: QuestionMedia[]) =>
     .filter(Boolean)
     .join(' · ');
 
+/** A question's text for lists, or what it shows when it's only media: "Sound clip question". */
+export const questionTitle = (question: { prompt: string; media: QuestionMedia[] }) => {
+  const text = promptText(question.prompt);
+  if (text || question.media.length === 0) return text;
+  const { singular } = MEDIA_KIND_LABELS[question.media[0].kind];
+  return `${singular.charAt(0).toUpperCase()}${singular.slice(1)} question`;
+};
+
 /** 0 → "A". */
 export const choiceLetter = (index: number) => String.fromCharCode(65 + index);
 

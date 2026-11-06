@@ -5,7 +5,7 @@ import {
   QUESTION_TYPE_LABELS,
   answerLabel,
   mediaSummary,
-  promptText,
+  questionTitle,
   type QuestionType,
   type QuizQuestion,
 } from '@/lib/quizzes';
@@ -33,7 +33,7 @@ export const QuestionList = (props: QuestionListProps) => {
           imageSize={36}
           primaryColor="#ea580c"
           textColor="#ffffff"
-          name={promptText(question.prompt)}
+          name={questionTitle(question)}
           subtitle={[`Answer: ${answerLabel(question)}`, mediaSummary(question.media)]
             .filter(Boolean)
             .join(' · ')}
@@ -87,7 +87,7 @@ export const ReorderQuestionList = (props: ReorderQuestionListProps) => {
           <ReorderableField {...fieldProps(question, index, `question ${index + 1}`)}>
             <div className={styles.reorderRow}>
               <span className={styles.questionNumber}>{index + 1}</span>
-              <span className={styles.reorderPrompt}>{promptText(question.prompt)}</span>
+              <span className={styles.reorderPrompt}>{questionTitle(question)}</span>
             </div>
           </ReorderableField>
         </li>

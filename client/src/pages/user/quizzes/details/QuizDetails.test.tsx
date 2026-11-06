@@ -619,7 +619,29 @@ describe('QuizDetailsPage', () => {
       await click(screen.getByRole('button', { name: /Add Question/ }));
       await change('Question editor', '<p><strong> </strong></p>');
 
-      expect(await screen.findByText('Question is required')).toBeInTheDocument();
+      expect(await screen.findByText('Add a question or some media')).toBeInTheDocument();
+    });
+
+    it('saves a question that is only media', async () => {
+      await setup(FLAT);
+
+      await click(screen.getByRole('button', { name: /Add Question/ }));
+      await click(screen.getByRole('button', { name: 'True or False' }));
+      await change('Question editor', '<p> </p>');
+      expect(await screen.findByText('Add a question or some media')).toBeInTheDocument();
+
+      await addLink('https://cdn.example.com/tune.mp3');
+      expect(screen.queryByText('Add a question or some media')).not.toBeInTheDocument();
+      await submitQuestion();
+
+      await waitFor(() =>
+        expect(mocks.addQuestion).toHaveBeenCalledWith(
+          expect.objectContaining({
+            prompt: '',
+            media: [{ kind: 'audio', url: 'https://cdn.example.com/tune.mp3', name: null }],
+          }),
+        ),
+      );
     });
 
     it('explains links it cannot use', async () => {
@@ -674,7 +696,7 @@ describe('QuizDetailsPage', () => {
       await click(screen.getByRole('button', { name: /Add Question/ }));
 
       expect(screen.getByRole('button', { name: /Upload File/ })).toBeDisabled();
-      expect(screen.getByText(/File uploads aren’t set up yet/)).toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: 'Media link' })).toBeEnabled();
     });
 
     it("removes a question's media when editing it", async () => {

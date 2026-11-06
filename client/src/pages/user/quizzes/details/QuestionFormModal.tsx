@@ -84,7 +84,8 @@ const toFormValues = (
 
 const toPayload = (data: FormValues, categorized: boolean): QuestionInput => {
   const base = {
-    prompt: data.prompt.trim(),
+    // Formatting with no words in it is no question at all.
+    prompt: promptText(data.prompt) ? data.prompt.trim() : '',
     media: data.media,
     category_id: categorized ? data.category_id : null,
   };
@@ -228,9 +229,10 @@ const QuestionFormModal = (props: Props) => {
           control={control}
           name="prompt"
           rules={{
-            validate: (value: string) => {
+            // Media can stand in for the question, such as a sound clip to name.
+            validate: (value: string, values) => {
               const text = promptText(value);
-              if (!text) return 'Question is required';
+              if (!text) return values.media.length > 0 || 'Add a question or some media';
               return (
                 text.length <= PROMPT_MAX ||
                 `Keep the question to ${PROMPT_MAX} characters or fewer`
@@ -240,7 +242,6 @@ const QuestionFormModal = (props: Props) => {
           render={({ field, fieldState }) => (
             <FormField
               label="Question"
-              required
               invalid={fieldState.invalid}
               errorMessage={fieldState.error?.message}
             >
@@ -268,7 +269,10 @@ const QuestionFormModal = (props: Props) => {
           render={({ field }) => (
             <QuestionMediaField
               value={field.value}
-              onChange={field.onChange}
+              onChange={(media) => {
+                field.onChange(media);
+                void trigger('prompt');
+              }}
               onUploadingChange={setUploading}
               disabled={isSubmitting}
             />
@@ -282,7 +286,6 @@ const QuestionFormModal = (props: Props) => {
             control={control}
             name="correct_choice"
           >
-            <p className={styles.fieldHint}>Select the correct answer.</p>
             <ol className={styles.choices}>
               {fields.map((field, index) => (
                 <li
@@ -381,7 +384,6 @@ const QuestionFormModal = (props: Props) => {
           <ControlledInputField
             label="Answer"
             required
-            sublabel="What you’ll check players’ answers against."
             control={control}
             name="written_answer"
             maxLength={200}
