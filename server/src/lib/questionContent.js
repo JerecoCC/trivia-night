@@ -56,17 +56,23 @@ function promptText(html) {
 
 /**
  * Cleans a prompt down to the allowed formatting. Plain text (no tags) is kept as a
- * paragraph, so every stored prompt is HTML.
+ * paragraph, so every stored prompt is HTML. Pass `required: false` for a question whose
+ * media can stand on its own: an empty prompt is then stored as ''.
  */
-function normalizePrompt(value) {
-  if (typeof value !== 'string') throw badRequest('prompt is required');
+function normalizePrompt(value, { required = true } = {}) {
+  const missing = () => {
+    if (required) throw badRequest('prompt is required');
+    return '';
+  };
+  if (value === null || value === undefined) return missing();
+  if (typeof value !== 'string') throw badRequest('prompt must be text');
   const input = value.trim();
   const html = sanitizeHtml(
     /<[a-z/!]/i.test(input) ? input : `<p>${escapeHtml(input)}</p>`,
     PROMPT_HTML_OPTIONS,
   ).trim();
   const text = promptText(html);
-  if (!text) throw badRequest('prompt is required');
+  if (!text) return missing();
   if (text.length > PROMPT_TEXT_MAX) {
     throw badRequest(`prompt must be ${PROMPT_TEXT_MAX} characters or fewer`);
   }

@@ -65,7 +65,8 @@ function normalizeCategoryInput(body = {}) {
 
 /**
  * Validates a complete question: its prompt is cleaned to simple formatting (see
- * questionContent.js), its media checked, and its answer shaped for its type:
+ * questionContent.js), its media checked, and its answer shaped for its type. The prompt
+ * may be left out when the question has media, such as a photo or sound clip to identify.
  * - multiple_choice: 2–6 distinct choices, and `answer` is the index of the correct one
  * - true_false: `answer` is true or false
  * - written: `answer` is the expected answer the planner checks players' answers against
@@ -76,8 +77,8 @@ function normalizeQuestionInput(body = {}) {
   if (!QUESTION_TYPES.includes(type)) {
     throw badRequest(`question_type must be one of: ${QUESTION_TYPES.join(', ')}`);
   }
-  const prompt = normalizePrompt(input.prompt);
   const media = normalizeMedia(input.media);
+  const prompt = normalizePrompt(input.prompt, { required: media.length === 0 });
 
   if (type === 'true_false') {
     if (typeof input.answer !== 'boolean') throw badRequest('answer must be true or false');

@@ -180,13 +180,13 @@ async function runSchemaSetup() {
   await sql`
     ALTER TABLE quiz_questions ADD COLUMN IF NOT EXISTS media JSONB NOT NULL DEFAULT '[]'::jsonb
   `;
-  // Prompts are formatted HTML, always starting with a tag. Prompts written before formatting
-  // existed are plain text, so they become an escaped paragraph.
+  // Prompts are formatted HTML, always starting with a tag, or empty when media stands in for
+  // the question. Plain-text prompts from before formatting become an escaped paragraph.
   await sql`
     UPDATE quiz_questions
     SET prompt = '<p>' || replace(replace(replace(prompt, '&', '&amp;'), '<', '&lt;'), '>', '&gt;')
                  || '</p>'
-    WHERE prompt NOT LIKE '<%'
+    WHERE prompt NOT LIKE '<%' AND prompt <> ''
   `;
 
   // Each event plays at most one quiz. Deleting the quiz leaves the event without one.

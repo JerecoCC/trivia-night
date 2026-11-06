@@ -32,6 +32,13 @@ describe('normalizePrompt', () => {
     expect(() => normalizePrompt(`<p>${'a'.repeat(501)}</p>`)).toThrow(/500 characters/);
     expect(normalizePrompt(`<p><strong>${'a'.repeat(500)}</strong></p>`)).toContain('<strong>');
   });
+
+  it('stores an empty prompt as blank when it is optional', () => {
+    expect(normalizePrompt('<p><br></p>', { required: false })).toBe('');
+    expect(normalizePrompt(null, { required: false })).toBe('');
+    expect(normalizePrompt('Hi', { required: false })).toBe('<p>Hi</p>');
+    expect(() => normalizePrompt(42, { required: false })).toThrow('prompt must be text');
+  });
 });
 
 describe('promptText', () => {

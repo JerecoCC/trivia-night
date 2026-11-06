@@ -161,6 +161,16 @@ describe('normalizeQuestionInput', () => {
       }),
     ).toThrow('prompt is required');
   });
+
+  it('lets media stand in for the prompt', () => {
+    const clip = { kind: 'audio', url: 'https://cdn.example.com/tune.mp3', name: 'tune.mp3' };
+    expect(
+      normalizeQuestionInput({ question_type: 'written', prompt: '', media: [clip], answer: 'A' }),
+    ).toEqual(expect.objectContaining({ prompt: '', media: [clip] }));
+    expect(
+      normalizeQuestionInput({ question_type: 'true_false', media: [clip], answer: true }).prompt,
+    ).toBe('');
+  });
 });
 
 describe('planQuizOrder', () => {
