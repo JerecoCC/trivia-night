@@ -229,21 +229,23 @@ const QuestionFormModal = (props: Props) => {
           control={control}
           name="prompt"
           rules={{
-            // Media can stand in for the question, such as a sound clip to name.
-            validate: (value: string, values) => {
-              const text = promptText(value);
-              if (!text) return values.media.length > 0 || 'Add a question or some media';
-              return (
-                text.length <= PROMPT_MAX ||
-                `Keep the question to ${PROMPT_MAX} characters or fewer`
-              );
+            validate: {
+              // Media can stand in for the question, such as a sound clip to name. Until there's
+              // one or the other, saving is off; an empty field isn't shown as an error.
+              content: (value: string, values) =>
+                promptText(value) !== '' || values.media.length > 0,
+              length: (value: string) =>
+                promptText(value).length <= PROMPT_MAX ||
+                `Keep the question to ${PROMPT_MAX} characters or fewer`,
             },
           }}
           render={({ field, fieldState }) => (
             <FormField
               label="Question"
-              invalid={fieldState.invalid}
-              errorMessage={fieldState.error?.message}
+              invalid={fieldState.error?.type === 'length'}
+              errorMessage={
+                fieldState.error?.type === 'length' ? fieldState.error.message : undefined
+              }
             >
               {({ labelId }) => (
                 <div

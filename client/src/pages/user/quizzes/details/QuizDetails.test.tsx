@@ -198,6 +198,11 @@ const submitForm = async (form: string, label: string) => {
 
 const submitQuestion = (label = 'Add Question') => submitForm('question-form', label);
 
+const questionSubmit = (label = 'Add Question') =>
+  screen
+    .getAllByRole('button', { name: label })
+    .find((button) => button.getAttribute('form') === 'question-form')!;
+
 /** A round's own menu comes before its categories' menus. */
 const openRoundMenu = (round: HTMLElement) =>
   click(within(round).getAllByRole('button', { name: /More actions/ })[0]);
@@ -613,13 +618,15 @@ describe('QuizDetailsPage', () => {
       );
     });
 
-    it('needs words in the question, not just formatting', async () => {
+    it('needs words in the question, not just formatting, without calling it an error', async () => {
       await setup(FLAT);
 
       await click(screen.getByRole('button', { name: /Add Question/ }));
+      await click(screen.getByRole('button', { name: 'True or False' }));
       await change('Question editor', '<p><strong> </strong></p>');
 
-      expect(await screen.findByText('Add a question or some media')).toBeInTheDocument();
+      await waitFor(() => expect(questionSubmit()).toBeDisabled());
+      expect(screen.queryByText(/Add a question/)).not.toBeInTheDocument();
     });
 
     it('saves a question that is only media', async () => {
@@ -628,10 +635,9 @@ describe('QuizDetailsPage', () => {
       await click(screen.getByRole('button', { name: /Add Question/ }));
       await click(screen.getByRole('button', { name: 'True or False' }));
       await change('Question editor', '<p> </p>');
-      expect(await screen.findByText('Add a question or some media')).toBeInTheDocument();
+      await waitFor(() => expect(questionSubmit()).toBeDisabled());
 
       await addLink('https://cdn.example.com/tune.mp3');
-      expect(screen.queryByText('Add a question or some media')).not.toBeInTheDocument();
       await submitQuestion();
 
       await waitFor(() =>
