@@ -1,27 +1,25 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Outlet } from 'react-router-dom';
 import BreadcrumbTitleRow from '@jerecocc/tracker-ui/components/Breadcrumbs/BreadcrumbTitleRow';
-import Icon from '@jerecocc/tracker-ui/components/Icon/Icon';
 import BreadcrumbContext, { type BreadcrumbConfig } from '@/context/BreadcrumbContext';
 import MobileTabsContext, { type MobileTabsState } from '@/context/MobileTabsContext';
 import QueryProvider from '@/context/QueryProvider';
 import TitleRowContext from '@/context/TitleRowContext';
 import PageHeader from '@/shared/PageHeader/PageHeader';
+import PageTitle from '@/shared/PageTitle/PageTitle';
 import styles from './AppLayout.module.scss';
 
 export interface AppNavigationProps {
-  collapsed: boolean;
   mobileOpen: boolean;
   onMobileClose: () => void;
-  onToggle: () => void;
 }
 
 interface AppLayoutProps {
   renderNavigation: (props: AppNavigationProps) => ReactNode;
 }
 
+/** The app bar across the top, the navigation rail down the left, and the page beside it. */
 const AppLayout = ({ renderNavigation }: AppLayoutProps) => {
-  const [collapsed, setCollapsed] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   // State ref-callbacks trigger a render when portal targets become available.
   const [titleRowContainer, setTitleRowContainer] = useState<HTMLDivElement | null>(null);
@@ -39,7 +37,6 @@ const AppLayout = ({ renderNavigation }: AppLayoutProps) => {
     () => ({ rowContainer: titleRowContainer, mobileLeftContainer: mobileTitleLeftContainer }),
     [titleRowContainer, mobileTitleLeftContainer],
   );
-  const toggleSidebar = () => setCollapsed((value) => !value);
   const closeMobileNavigation = () => setMobileOpen(false);
 
   return (
@@ -56,38 +53,27 @@ const AppLayout = ({ renderNavigation }: AppLayoutProps) => {
                 />
               )}
 
-              <div className={styles.sidebarWrapper}>
-                {renderNavigation({
-                  collapsed,
-                  mobileOpen,
-                  onMobileClose: closeMobileNavigation,
-                  onToggle: toggleSidebar,
-                })}
-                <button
-                  className={styles.sidebarToggle}
-                  onClick={toggleSidebar}
-                  aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                >
-                  <Icon
-                    name={collapsed ? 'chevron_right' : 'chevron_left'}
-                    size="0.75rem"
-                  />
-                </button>
-              </div>
+              <PageHeader
+                onMenuToggle={() => setMobileOpen((value) => !value)}
+                mobileTitleLeftRef={setMobileTitleLeftContainer}
+              />
 
-              <div
-                className={styles.scrollArea}
-                data-app-scroll-lock-target="true"
-              >
-                <PageHeader
-                  onMenuToggle={() => setMobileOpen((value) => !value)}
-                  mobileTitleLeftRef={setMobileTitleLeftContainer}
-                />
-                <main className={styles.main}>
-                  <div ref={setTitleRowContainer} />
-                  <BreadcrumbTitleRow />
-                  <Outlet />
-                </main>
+              <div className={styles.body}>
+                <div className={styles.sidebarWrapper}>
+                  {renderNavigation({ mobileOpen, onMobileClose: closeMobileNavigation })}
+                </div>
+
+                <div
+                  className={styles.scrollArea}
+                  data-app-scroll-lock-target="true"
+                >
+                  <main className={styles.main}>
+                    <PageTitle />
+                    <div ref={setTitleRowContainer} />
+                    <BreadcrumbTitleRow />
+                    <Outlet />
+                  </main>
+                </div>
               </div>
             </div>
           </TitleRowContext.Provider>

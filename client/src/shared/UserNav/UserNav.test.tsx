@@ -1,23 +1,26 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useLocation } from 'react-router-dom';
 import UserNav from './UserNav';
 
 const mockNavigate = jest.fn();
 const mockMobileClose = jest.fn();
+const mockLogout = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   useLocation: jest.fn(),
   useNavigate: () => mockNavigate,
 }));
 
-const setup = () => {
-  (useLocation as jest.Mock).mockReturnValue({ pathname: '/dashboard' });
+jest.mock('@/context/AuthContext', () => ({
+  useAuth: () => ({ logout: mockLogout }),
+}));
+
+const setup = (pathname = '/dashboard', mobileOpen = false) => {
+  (useLocation as jest.Mock).mockReturnValue({ pathname });
 
   return render(
     <UserNav
-      collapsed={false}
-      onToggle={jest.fn()}
-      mobileOpen
+      mobileOpen={mobileOpen}
       onMobileClose={mockMobileClose}
     />,
   );
@@ -26,32 +29,29 @@ const setup = () => {
 beforeEach(() => jest.clearAllMocks());
 
 describe('UserNav', () => {
-  it('leads with the app icon and name, and only the icon when collapsed', () => {
-    const { container, rerender } = setup();
+  it('names every page, and marks the current one', () => {
+    setup('/quizzes/abc');
 
-    expect(screen.getByText('Trivia Night')).toBeInTheDocument();
-    expect(container.querySelector('img[src="/favicon.svg"]')).toHaveAttribute('alt', '');
-
-    rerender(
-      <UserNav
-        collapsed
-        onToggle={jest.fn()}
-        mobileOpen={false}
-        onMobileClose={mockMobileClose}
-      />,
-    );
-    expect(screen.queryByText('Trivia Night')).not.toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Trivia Night' })).toHaveAttribute(
-      'src',
-      '/favicon.svg',
-    );
+    expect(screen.getByRole('button', { name: 'Dashboard' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: 'Events' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Quizzes' })).toHaveAttribute('aria-current', 'page');
   });
 
   it('navigates and closes the mobile menu when an item is clicked', () => {
+    setup('/dashboard', true);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Events' }));
+    expect(mockNavigate).toHaveBeenCalledWith('/events');
+    expect(mockMobileClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('signs out and goes to the login page', async () => {
+    mockLogout.mockResolvedValue(undefined);
     setup();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Dashboard' }));
-    expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
-    expect(mockMobileClose).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
+
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/login'));
+    expect(mockLogout).toHaveBeenCalledTimes(1);
   });
 });

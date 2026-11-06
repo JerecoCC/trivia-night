@@ -1,145 +1,138 @@
-@use "styles/colors" as *;
-@use "styles/mixins" as *;
+@use 'styles/colors' as *;
+@use 'styles/mixins' as *;
 
 // ── Layout tokens ──────────────────────────────────────────────────────
-$nav-width: 220px;
-$nav-collapsed-width: 56px;
+$rail-width: 64px;
+$drawer-width: 240px;
+$badge-size: 40px;
 
-// ── Shell ──────────────────────────────────────────────────────────────
+// ── Shell: an icon rail under the header ───────────────────────────────
 .nav {
-  width: $nav-width;
+  width: $rail-width;
   height: 100%;
-  background: var(--app-surface, #{$bg-card});
-  border-right: 1px solid var(--app-border, #{$border});
   display: flex;
   flex-direction: column;
-  padding: $space-2xl 0;
   flex-shrink: 0;
+  padding-top: $space-lg;
   overflow: hidden;
-  transition: width $transition-layout ease;
-}
-
-// ── Collapsed state ────────────────────────────────────────────────────
-.collapsed {
-  width: $nav-collapsed-width;
-
-  // The icon alone, centred like the item icons below it.
-  .brandRow {
-    justify-content: center;
-    padding: 0;
-  }
-
-  .navItem {
-    justify-content: center;
-    padding: $space-md 0;
-
-    &.active {
-      border-left: 3px solid $accent;
-      padding-left: 0;
-    }
-  }
-}
-
-// ── Top section ────────────────────────────────────────────────────────
-.top {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2xl;
-}
-
-// ── Brand row ──────────────────────────────────────────────────────────
-.brand {
-  &Row {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 0 $space-xl;
-    min-height: $space-3xl;
-  }
-
-  display: inline-flex;
-  align-items: center;
-  gap: $space-sm;
-  font-size: $font-xl;
-  font-weight: 700;
-  color: var(--app-text-strong, #{$text-bright});
-  white-space: nowrap;
-  letter-spacing: 0.01em;
-
-  // Sized like the nav item icons, so it lines up with them.
-  &Icon {
-    width: $font-2xl;
-    height: $font-2xl;
-    flex-shrink: 0;
-  }
+  background: var(--app-frame-bg, #{$bg-card});
 }
 
 // ── Nav list ───────────────────────────────────────────────────────────
 .list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
   gap: $space-xs;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.navItem {
+// Doubled class beats the button's own ghost styles.
+.navItem.navItem {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: $space-lg;
+  justify-content: center;
+  gap: $space-md;
   width: 100%;
-  padding: $space-md $space-xl;
-  background: transparent;
+  padding: $space-xs 0;
   border: none;
   border-radius: 0;
+  background: transparent;
   color: var(--app-text-subtle, #{$text-light});
   font-size: $font-nav;
   font-weight: 500;
-  cursor: pointer;
-  text-align: left;
   white-space: nowrap;
+
+  &:hover {
+    background: transparent;
+    color: var(--app-text-strong, #{$text-bright});
+
+    .iconBadge {
+      background: var(--app-hover-bg, rgba(255, 255, 255, 0.06));
+    }
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    .iconBadge {
+      outline: 2px solid $accent;
+      outline-offset: 2px;
+    }
+  }
+
+  // The current page's icon sits in a filled accent circle.
+  &.active {
+    color: var(--app-text-strong, #{$text-bright});
+
+    .iconBadge {
+      background: $accent;
+      color: #ffffff;
+    }
+  }
+}
+
+.iconBadge {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: $badge-size;
+  height: $badge-size;
+  border-radius: 50%;
   transition:
     background $transition-fast,
     color $transition-fast;
-
-  &:hover {
-    background: var(--app-bg, #{$bg-page});
-    color: var(--app-text, #e2e8f0);
-  }
-
-  &.active {
-    background: rgba($accent, 0.13);
-    color: $accent-light;
-    border-left: 3px solid $accent;
-    padding-left: calc(#{$space-xl} - 3px);
-  }
 }
 
 .icon {
-  font-size: $font-2xl;
-  line-height: 1;
   flex-shrink: 0;
 }
 
-// ── Bottom section (switch panel) ──────────────────────────────────────
-.bottom {
+// Labels show only in the mobile slide-out; the rail uses tooltips.
+.label {
+  display: none;
+}
+
+// ── Sign out, pinned to the bottom ─────────────────────────────────────
+.signOut.signOut {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-md;
+  width: 100%;
+  height: 56px;
+  // Pins it to the bottom when no tooltip wrapper does.
   margin-top: auto;
-  border-top: 1px solid var(--app-border, #{$border});
-  padding-top: $space-sm;
+  border: none;
+  border-radius: 0;
+  background: $accent;
+  color: #ffffff;
+  font-size: $font-nav;
+  font-weight: 600;
+
+  &:hover {
+    background: $accent-hover;
+    color: #ffffff;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--app-text-strong, #{$text-bright});
+    outline-offset: -4px;
+  }
 }
 
-.modeSwitch {
-  margin-top: $space-xs;
-  padding-top: $space-sm;
-  border-top: 1px solid var(--app-border, #{$border});
-}
-
-// ── Nav tooltip wrapper (makes Tooltip full-width for nav items) ───────
+// Makes the tooltip wrappers fill the rail, so the whole row is clickable.
 .navTooltipWrapper {
   display: block;
   width: 100%;
+}
+
+.signOutTooltipWrapper {
+  display: block;
+  width: 100%;
+  margin-top: auto;
 }
 
 // ── Mobile slide-out ───────────────────────────────────────────────────
@@ -148,40 +141,34 @@ $nav-collapsed-width: 56px;
     position: fixed;
     top: 0;
     right: 0;
-    height: 100dvh;
-    width: $nav-width;
     z-index: 50;
-    transform: translateX(100%);
-    transition-property: transform;
-    transition-duration: $transition-layout;
-    transition-timing-function: ease;
+    width: $drawer-width;
+    height: 100dvh;
     border-right: none;
     border-left: 1px solid var(--app-border, #{$border});
+    transform: translateX(100%);
+    transition: transform $transition-layout ease;
   }
 
   .nav.mobileOpen {
     transform: translateX(0);
   }
 
-  // Keep full width even when desktop-collapsed state is true
-  .collapsed {
-    width: $nav-width;
+  .navItem.navItem {
+    justify-content: flex-start;
+    padding: $space-xs $space-lg;
+
+    &.active {
+      color: $accent-light;
+    }
   }
 
-  // Restore left-aligned item layout when the slideout is open
-  .collapsed.mobileOpen {
-    .brandRow {
-      justify-content: flex-start;
-      padding: 0 $space-xl;
-    }
+  .signOut.signOut {
+    justify-content: flex-start;
+    padding: 0 $space-xl;
+  }
 
-    .navItem {
-      justify-content: flex-start;
-      padding: $space-md $space-xl;
-
-      &.active {
-        padding-left: calc(#{$space-xl} - 3px);
-      }
-    }
+  .label {
+    display: inline;
   }
 }

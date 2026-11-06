@@ -30,8 +30,8 @@ export const Signup: Story = {
 export const Navigation: Story = {
   render: () => (
     <UserNav
-      collapsed={false}
-      onToggle={noop}
+      mobileOpen={false}
+      onMobileClose={noop}
     />
   ),
 };

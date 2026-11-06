@@ -1,6 +1,8 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '@jerecocc/tracker-ui/components/Button/Button';
 import Icon from '@jerecocc/tracker-ui/components/Icon/Icon';
+import { useAuth } from '@/context/AuthContext';
+import type { AppNavigationProps } from '@/shared/AppLayout/AppLayout';
 import styles from './UserNav.module.scss';
 
 interface NavItem {
@@ -15,65 +17,79 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Quizzes', path: '/quizzes', icon: 'view_list' },
 ];
 
-interface UserNavProps {
-  collapsed: boolean;
-  onToggle: () => void;
-  mobileOpen?: boolean;
-  onMobileClose?: () => void;
-}
-
-const UserNav = (props: UserNavProps) => {
-  const { collapsed, mobileOpen, onMobileClose } = props;
+/**
+ * An icon rail on wider screens, with each label in a tooltip and sign out at the bottom.
+ * On phones and tablets it slides out from the header's menu button with the labels shown.
+ */
+const UserNav = (props: AppNavigationProps) => {
+  const { mobileOpen, onMobileClose } = props;
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { logout } = useAuth();
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 
-  const showExpanded = !collapsed || !!mobileOpen;
-
   const handleNavClick = (path: string) => {
     navigate(path);
-    onMobileClose?.();
+    onMobileClose();
+  };
+
+  const handleSignOut = async () => {
+    onMobileClose();
+    await logout();
+    navigate('/login');
   };
 
   return (
     <nav
-      className={`${styles.nav} ${collapsed ? styles.collapsed : ''} ${mobileOpen ? styles.mobileOpen : ''}`}
+      className={`${styles.nav} ${mobileOpen ? styles.mobileOpen : ''}`}
+      aria-label="Main"
     >
-      <div className={styles.top}>
-        {/* The app icon leads the name; collapsed, the icon stands alone. */}
-        <div className={styles.brandRow}>
-          <span className={styles.brand}>
-            <img
-              src="/favicon.svg"
-              alt={showExpanded ? '' : 'Trivia Night'}
-              className={styles.brandIcon}
-            />
-            {showExpanded && 'Trivia Night'}
-          </span>
-        </div>
-
-        <ul className={styles.list}>
-          {NAV_ITEMS.map(({ label, path, icon }) => (
+      <ul className={styles.list}>
+        {NAV_ITEMS.map(({ label, path, icon }) => {
+          const active = isActive(path);
+          return (
             <li key={path}>
               <Button
                 variant="ghost"
                 intent="neutral"
-                className={`${styles.navItem} ${isActive(path) ? styles.active : ''}`}
+                className={`${styles.navItem} ${active ? styles.active : ''}`}
                 onClick={() => handleNavClick(path)}
-                tooltip={!showExpanded ? label : undefined}
-                tooltipClassName={!showExpanded ? styles.navTooltipWrapper : undefined}
+                aria-label={label}
+                aria-current={active ? 'page' : undefined}
+                tooltip={mobileOpen ? undefined : label}
+                tooltipClassName={styles.navTooltipWrapper}
               >
-                <Icon
-                  name={icon}
-                  className={styles.icon}
-                />
-                {showExpanded && <span className={styles.label}>{label}</span>}
+                <span className={styles.iconBadge}>
+                  <Icon
+                    name={icon}
+                    size="1.25rem"
+                    className={styles.icon}
+                  />
+                </span>
+                <span className={styles.label}>{label}</span>
               </Button>
             </li>
-          ))}
-        </ul>
-      </div>
+          );
+        })}
+      </ul>
+
+      <Button
+        variant="ghost"
+        intent="neutral"
+        className={styles.signOut}
+        onClick={() => void handleSignOut()}
+        aria-label="Sign out"
+        tooltip={mobileOpen ? undefined : 'Sign out'}
+        tooltipClassName={styles.signOutTooltipWrapper}
+      >
+        <Icon
+          name="logout"
+          size="1.25rem"
+          className={styles.icon}
+        />
+        <span className={styles.label}>Sign out</span>
+      </Button>
     </nav>
   );
 };

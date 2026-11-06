@@ -1,18 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useMobileTabs } from '@/context/MobileTabsContext';
 import Icon from '@jerecocc/tracker-ui/components/Icon/Icon';
 import styles from './PageHeader.module.scss';
-
-const EXACT_TITLES: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/events': 'Events',
-  '/quizzes': 'Quizzes',
-};
-
-const getTitle = (pathname: string): string =>
-  EXACT_TITLES[pathname] ?? (pathname.startsWith('/quizzes/') ? 'Quiz' : '');
 
 const getInitials = (name: string | undefined) =>
   (name ?? '')
@@ -28,98 +17,48 @@ interface PageHeaderProps {
   mobileTitleLeftRef?: (node: HTMLDivElement | null) => void;
 }
 
+/** The app bar across the top: the app name, who's signed in, and the mobile menu button. */
 const PageHeader = ({ onMenuToggle, mobileTitleLeftRef }: PageHeaderProps) => {
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { mobileTabs } = useMobileTabs();
-
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const routeTitle = getTitle(pathname);
-  // On mobile, swap the route title for "{RoutePrefix} {ActiveTab}", e.g. "Night Info".
-  const activeTabLabel = mobileTabs?.tabs[mobileTabs.activeIndex];
-  const routePrefix = routeTitle.split(' ')[0]; // "Night Details" → "Night"
-  const mobileTabTitle = activeTabLabel ? `${routePrefix} ${activeTabLabel}` : null;
-  const title = routeTitle;
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const handleSignOut = async () => {
-    await logout();
-    navigate('/login');
-  };
+  const userName = user?.display_name ?? user?.displayName;
 
   return (
     <header className={styles.header}>
-      {/* ── Main title row ── */}
       <div className={styles.titleRow}>
         <div className={styles.left}>
           <div
             ref={mobileTitleLeftRef}
             className={styles.mobileTitleLeft}
           />
-          {/* Route title – hidden on mobile when tabs are present */}
-          {title && (
-            <h1
-              className={[styles.title, mobileTabs ? styles.titleHiddenMobile : '']
-                .filter(Boolean)
-                .join(' ')}
-            >
-              {title}
-            </h1>
-          )}
-          {/* Prefixed tab title – only shown on mobile when tabs are present */}
-          {mobileTabTitle && <h1 className={styles.titleMobileTab}>{mobileTabTitle}</h1>}
+          <span className={styles.brand}>
+            <img
+              src="/favicon.svg"
+              alt=""
+              className={styles.brandIcon}
+            />
+            Trivia Night
+          </span>
         </div>
 
         <div className={styles.right}>
           {user && (
-            <div
-              className={styles.profileChip}
-              ref={dropdownRef}
-            >
-              <button
-                className={styles.profileBtn}
-                onClick={() => setDropdownOpen((o) => !o)}
-                aria-label="Account menu"
-              >
-                {user.photo ? (
-                  <img
-                    src={user.photo}
-                    alt={user.display_name ?? user.displayName}
-                    className={styles.avatar}
-                  />
-                ) : (
-                  <span className={styles.avatarInitials}>
-                    {getInitials(user.display_name ?? user.displayName)}
-                  </span>
-                )}
-              </button>
-
-              {dropdownOpen && (
-                <div className={styles.dropdown}>
-                  <button
-                    className={styles.dropdownItem}
-                    onClick={handleSignOut}
-                  >
-                    <Icon
-                      name="logout"
-                      size="1rem"
-                    />
-                    Sign out
-                  </button>
-                </div>
+            <div className={styles.profile}>
+              {user.photo ? (
+                <img
+                  src={user.photo}
+                  alt=""
+                  className={styles.avatar}
+                />
+              ) : (
+                <span
+                  className={styles.avatarInitials}
+                  aria-hidden="true"
+                >
+                  {getInitials(userName)}
+                </span>
               )}
+              <span className={styles.displayName}>{userName}</span>
             </div>
           )}
           {onMenuToggle && (

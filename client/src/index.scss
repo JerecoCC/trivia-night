@@ -18,6 +18,7 @@ $color-bg: #fff;
   color-scheme: dark;
   --app-bg: #0f172a;
   --app-surface: #1e293b;
+  --app-frame-bg: var(--app-surface); // header and nav rail around the page panel
   --app-surface-muted: #0f172a;
   --app-surface-subtle: color-mix(in srgb, var(--app-surface) 97%, var(--app-text-strong));
   --app-card-light-bg: #f8fafc;
@@ -52,6 +53,7 @@ $color-bg: #fff;
   color-scheme: light;
   --app-bg: #edf4fc;
   --app-surface: #f5f9ff;
+  --app-frame-bg: #ffffff;
   --app-surface-muted: #e7f0fb;
   --app-card-light-bg: #f7faff;
   --app-field-bg: #eaf2fb;

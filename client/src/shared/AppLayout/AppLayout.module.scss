@@ -1,46 +1,28 @@
-@use "styles/mixins" as *;
+@use 'styles/colors' as *;
+@use 'styles/mixins' as *;
 
-$bg-page: #0f172a;
+// Matches the Card component, so the panel and the cards inside it round alike.
+$panel-radius: $radius-lg;
 
+// The app bar and nav rail form one frame; the page sits inside it in a rounded panel.
 .page {
   height: 100vh;
   overflow: hidden;
-  background: var(--app-bg, #{$bg-page});
+  background: var(--app-frame-bg, #{$bg-card});
   display: flex;
+  flex-direction: column;
   color: var(--app-text);
 }
 
-.sidebar {
-  &Wrapper {
-    position: relative;
-    flex-shrink: 0;
-    display: flex;
-  }
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
 
-  &Toggle {
-    position: absolute;
-    right: -13px;
-    top: calc(#{$space-2xl} + #{$space-3xl} / 2 - 13px);
-    z-index: 20;
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--app-surface, #1e293b);
-    border: 1px solid var(--app-border, #334155);
-    border-radius: 6px;
-    color: var(--app-text-subtle, #94a3b8);
-    cursor: pointer;
-    transition:
-      border-color 0.15s,
-      color 0.15s;
-
-    &:hover {
-      border-color: #64ffda;
-      color: #64ffda;
-    }
-  }
+.sidebarWrapper {
+  flex-shrink: 0;
+  display: flex;
 }
 
 .scrollArea {
@@ -49,6 +31,17 @@ $bg-page: #0f172a;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  background: var(--app-bg, #{$bg-page});
+  // Outlined like a card where it meets the frame; the header and rail stay joined.
+  border-top: 1px solid var(--app-border, #{$border});
+  border-left: 1px solid var(--app-border, #{$border});
+  border-top-left-radius: $panel-radius;
+
+  // No rail on smaller screens, so the panel rounds both top corners under the header.
+  @media (max-width: $screen-tablet-max) {
+    border-right: 1px solid var(--app-border, #{$border});
+    border-top-right-radius: $panel-radius;
+  }
 }
 
 .overlay {
@@ -59,25 +52,19 @@ $bg-page: #0f172a;
 }
 
 @media (max-width: $screen-tablet-max) {
-  .sidebar {
-    &Wrapper {
-      width: 0;
-    }
-
-    &Toggle {
-      display: none;
-    }
+  .sidebarWrapper {
+    width: 0;
   }
 }
 
 .main {
-  --main-inline-padding: #{$space-4xl};
-  --main-inline-padding-offset: -#{$space-4xl};
+  --main-inline-padding: #{$space-2xl};
+  --main-inline-padding-offset: -#{$space-2xl};
 
   width: 100%;
   max-width: $max-content-width;
   margin: 0 auto;
-  padding: $space-4xl;
+  padding: $space-lg $space-2xl $space-2xl;
   flex: 1;
 
   @media (max-width: $screen-tablet-max) {
