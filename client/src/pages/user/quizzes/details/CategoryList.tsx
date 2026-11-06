@@ -79,7 +79,7 @@ const CategoryList = (props: Props) => {
               reordering ? undefined : (
                 <>
                   <Button
-                    variant="outlined"
+                    variant="ghost"
                     intent="accent"
                     icon="add"
                     size="small"
